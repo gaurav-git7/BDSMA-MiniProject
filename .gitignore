@@ -1,0 +1,20 @@
+# Data
+data/raw/
+*.tar.gz
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.env
+venv/
+.venv/
+
+# Results cache
+backend/results/
+*.npz
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+.DS_Store
