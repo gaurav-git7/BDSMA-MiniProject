@@ -15,12 +15,17 @@ export default function NodeDetailPanel({ egoId, nodeId, onClose, onSelectForRec
       .finally(() => setLoading(false));
   }, [egoId, nodeId]);
 
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onClose]);
+
   if (!nodeId) return null;
 
   return (
-    <div className="glass-panel" style={{
+    <div className="glass-panel node-panel" style={{
       padding: '1.25rem',
-      width: '320px',
       display: 'flex',
       flexDirection: 'column',
       gap: '1rem',
@@ -84,7 +89,7 @@ export default function NodeDetailPanel({ egoId, nodeId, onClose, onSelectForRec
               {details.active_circles.length > 0 ? (
                 details.active_circles.map((c) => (
                   <span key={c} className="badge badge-circle">
-                    {c}
+                    {details.labels?.[c] || c}
                   </span>
                 ))
               ) : (
@@ -97,13 +102,18 @@ export default function NodeDetailPanel({ egoId, nodeId, onClose, onSelectForRec
           {details.membership_vector && details.membership_vector.length > 0 && (
             <div>
               <label style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 600, textTransform: 'uppercase' }}>
-                Soft Membership Scores (F)
+                Strongest circle scores
               </label>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', marginTop: '0.5rem', maxHeight: '180px', overflowY: 'auto' }}>
-                {details.membership_vector.map((score, cIdx) => (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', marginTop: '0.5rem' }}>
+                {details.membership_vector
+                  .map((score, cIdx) => ({ score, cIdx }))
+                  .filter((x) => x.score > 0.01)
+                  .sort((a, b) => b.score - a.score)
+                  .slice(0, 8)
+                  .map(({ score, cIdx }) => (
                   <div key={cIdx} style={{ fontSize: '0.75rem' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.15rem' }}>
-                      <span style={{ color: 'var(--text-secondary)' }}>Circle {cIdx}</span>
+                      <span style={{ color: 'var(--text-secondary)' }}>{details.labels?.[`circle_${cIdx}`] || `Circle ${cIdx}`}</span>
                       <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, color: score >= 0.5 ? '#38bdf8' : 'var(--text-muted)' }}>
                         {score}
                       </span>

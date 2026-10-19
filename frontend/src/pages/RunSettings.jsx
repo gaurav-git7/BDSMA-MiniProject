@@ -67,7 +67,7 @@ export default function RunSettings({ egoId, onRunComplete }) {
           </div>
 
           {/* Clique size k */}
-          <div>
+          <div style={{ opacity: config.seeding === 'weak_clique' ? 0.45 : 1 }}>
             <label style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '0.4rem' }}>
               Clique Size (k): <strong style={{ color: '#38bdf8' }}>{config.k}</strong>
             </label>
@@ -77,10 +77,11 @@ export default function RunSettings({ egoId, onRunComplete }) {
               max="5"
               step="1"
               value={config.k}
+              disabled={config.seeding === 'weak_clique'}
               onChange={(e) => setConfig({ ...config, k: parseInt(e.target.value, 10) })}
               style={{ width: '100%', accentColor: 'var(--accent-indigo)' }}
             />
-            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>k=3 (triangles) to k=5 (5-person cliques)</span>
+            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{config.seeding === 'weak_clique' ? 'Not used with weak-clique seeds' : 'k=3 (triangles) to k=5 (5-person cliques)'}</span>
           </div>
 
           {/* GNN Encoder Architecture */}

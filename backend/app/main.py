@@ -167,6 +167,7 @@ def get_node_details(ego_id: int, node_id: str):
     return {
         "ego_id": ego_id,
         "node_id": node_id,
+        "labels": circle_labels_for(ego_id, hybrid_comms),
         "active_circles": active_circles,
         "circle_count": len(active_circles),
         "membership_vector": F_row

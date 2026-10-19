@@ -69,6 +69,8 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.5rem;
 }
 
 .logo-badge {
@@ -90,9 +92,11 @@ body {
   padding: 0.3rem;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border-subtle);
+  flex-wrap: wrap;
 }
 
 .nav-tab-btn {
+  white-space: nowrap;
   background: transparent;
   border: none;
   color: var(--text-secondary);
@@ -128,6 +132,7 @@ body {
 }
 
 .ego-select-dropdown {
+  max-width: 100%;
   background: #151c2c;
   color: var(--text-primary);
   border: 1px solid var(--border-subtle);
@@ -147,6 +152,7 @@ body {
 
 /* Main Content Container */
 .main-container {
+  min-width: 0;
   max-width: 1440px;
   margin: 0 auto;
   padding: 1.75rem 2rem 3rem 2rem;
@@ -178,6 +184,7 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 0.3rem;
+  white-space: nowrap;
   padding: 0.2rem 0.6rem;
   border-radius: 9999px;
   font-size: 0.75rem;
@@ -204,6 +211,7 @@ body {
 
 /* Buttons */
 .btn-primary {
+  white-space: nowrap;
   background: linear-gradient(135deg, #4f46e5 0%, #06b6d4 100%);
   color: #fff;
   border: none;
@@ -224,6 +232,7 @@ body {
 }
 
 .btn-secondary {
+  white-space: nowrap;
   background: rgba(255, 255, 255, 0.05);
   color: var(--text-primary);
   border: 1px solid var(--border-subtle);
@@ -240,6 +249,35 @@ body {
 
 .btn-secondary:hover {
   background: rgba(255, 255, 255, 0.1);
+}
+
+/* Node detail side panel: stays in view and scrolls on its own */
+.node-panel {
+  flex: 0 0 320px;
+  align-self: flex-start;
+  position: sticky;
+  top: 5.5rem;
+  max-height: calc(100vh - 7rem);
+  overflow-y: auto;
+}
+
+.explorer-layout {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.explorer-graph {
+  flex: 1 1 520px;
+  min-width: 0;
+}
+
+@media (max-width: 1100px) {
+  .app-header { padding: 0.75rem 1rem; }
+  .main-container { padding: 1.25rem 1rem 2rem 1rem; }
+  .nav-tab-btn { padding: 0.45rem 0.6rem; font-size: 0.82rem; }
+  .node-panel { flex: 1 1 100%; position: static; max-height: none; }
 }
 
 /* Custom Scrollbar */

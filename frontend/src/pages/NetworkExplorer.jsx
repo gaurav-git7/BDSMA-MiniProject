@@ -122,8 +122,8 @@ export default function NetworkExplorer({ egoId, onSelectForRecommend }) {
       </div>
 
       {/* Network View & Sidebar */}
-      <div style={{ display: 'flex', gap: '1rem', minHeight: '620px' }}>
-        <div style={{ flex: 1, minHeight: '620px' }}>
+      <div className="explorer-layout">
+        <div className="explorer-graph" style={{ minHeight: '620px' }}>
           {loading ? (
             <div className="glass-panel" style={{ height: '100%', minHeight: '620px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)' }}>
               Rendering network topology...

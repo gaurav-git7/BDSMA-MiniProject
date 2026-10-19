@@ -152,6 +152,16 @@ export default function NetworkGraph({
     };
   }, [elements, layoutName, communityMapping]);
 
+  // Resize the canvas whenever its container changes size (e.g. side panel opens)
+  useEffect(() => {
+    if (!containerRef.current || typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver(() => {
+      if (cyRef.current) cyRef.current.resize();
+    });
+    ro.observe(containerRef.current);
+    return () => ro.disconnect();
+  }, []);
+
   // Handle activeCircle filter and node selection
   useEffect(() => {
     if (!cyRef.current) return;
