@@ -51,11 +51,11 @@ def run_pipeline(
     t_start = time.time()
     cfg = {
         "k": 4,
-        "seeding": "cpm",  # 'cpm' or 'weak_clique'
+        "seeding": "weak_clique",  # 'cpm' or 'weak_clique'
         "encoder_type": "sage",  # 'sage' or 'gat'
         "hidden_dim": 64,
         "lr": 0.01,
-        "epochs": 150,
+        "epochs": 300,
         "structure_loss": "bp",  # 'bp' or 'modularity'
         "lambda_seed": 1.0,
         "tau": 0.5,

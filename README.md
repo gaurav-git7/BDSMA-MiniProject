@@ -45,11 +45,11 @@ ego-network -> clique seeding -> merge -> seed matrix S -> GNN on [X | S] -> mem
 ```
 
 1. **Load** the adjacency matrix `A`, features `X` and ground-truth circles ([loader.py](backend/app/data/loader.py)).
-2. **Seed** with either k-clique percolation (default k = 4) or weak cliques: a linked pair plus its common neighbours, with start nodes chosen by density priority and partners by Salton index.
+2. **Seed** with weak cliques (default) or k-clique percolation (k = 4): a linked pair plus its common neighbours, with start nodes chosen by density priority and partners by Salton index.
 3. **Merge** seeds whose Jaccard overlap exceeds 0.6 and keep the top K (K = number of ground-truth circles, capped by the seed count and `max_seeds` = 20, minimum 3).
 4. **Build** the seed matrix `S` (N x K, binary). Node input to the GNN is `[X | S]`.
 5. **Encode** with a 2-layer GraphSAGE (default) or GAT, hidden size 64, dropout 0.1, non-negative output `F`.
-6. **Train** with `L = L_structure + lambda * L_seed` (Adam, lr 0.01, 150 epochs by default, lambda = 1.0).
+6. **Train** with `L = L_structure + lambda * L_seed` (Adam, lr 0.01, 300 epochs by default, lambda = 1.0).
 7. **Assign:** node `u` joins circle `c` if `F[u, c] >= tau`. Unassigned nodes take the most common circle among their neighbours.
 
 ### Losses ([losses.py](backend/app/model/losses.py))
@@ -185,30 +185,47 @@ npm --prefix frontend run dev
 
 Open http://localhost:5173 for the dashboard.
 
-## 9. Results (our run, 10 ego-networks, 100 epochs via `run_all.py`)
+**Optional: reproduce the ablation and tuning study** (about 15 minutes, writes `backend/experiments/`):
 
-Mean over all 10 networks, against the hand-labelled circles:
+```bash
+python backend/scripts/ablation.py
+```
+
+## 9. Results
+
+Mean over all 10 ego-networks against the hand-labelled circles, with the tuned defaults (weak-clique seeds, 300 epochs, tau 0.5), one run:
 
 | Method | ONMI | Avg F1 | Omega | Runtime (s) |
 |---|---|---|---|---|
-| **Hybrid (CPM seeds + GNN)** | 0.258 | 0.379 | 0.224 | 0.74 |
-| CPM | 0.244 | 0.313 | 0.135 | 0.02 |
-| Louvain (disjoint) | **0.339** | **0.384** | **0.322** | 0.05 |
-| BigCLAM | 0.088 | 0.366 | 0.036 | 0.53 |
-| GNN without seeds | 0.270 | 0.372 | 0.205 | 0.95 |
+| **Hybrid (weak-clique seeds + GNN)** | 0.326 | **0.445** | 0.280 | 3.71 |
+| CPM | 0.223 | 0.313 | 0.127 | 0.03 |
+| Louvain (disjoint) | **0.339** | 0.384 | **0.322** | 0.05 |
+| BigCLAM | 0.101 | 0.377 | 0.042 | 0.75 |
+| GNN without seeds | 0.298 | 0.407 | 0.255 | 1.67 |
 
-Friend-suggestion check (hide 10% of edges, hit-rate, mean over 10 networks): hybrid **0.63** vs common-neighbours **0.87**.
+Friend-suggestion check (hide 10% of edges, hit-rate, mean over 10 networks): hybrid **0.78** vs common-neighbours **0.89**.
 
-How to read this honestly:
+What this shows:
 
-- The hybrid beats plain CPM on all three accuracy metrics and ran faster than the GNN without seeds.
-- It does **not** beat Louvain on ONMI or Omega in our run, and is level on F1. Louvain is a strong baseline on these small graphs.
-- Seeding gives only a small gain over the GNN without seeds in F1 (0.379 vs 0.372), and slightly lower ONMI.
-- The hybrid is slower than CPM and Louvain in absolute terms. Any speed advantage over CPM would only appear on much larger graphs, which this dataset does not test.
-- For friend suggestions, plain common-neighbours is better than circle affinity on nearly every network (tied on the smallest). Circle-based suggestions are valuable for the explanation they give, not for raw accuracy.
-- Results vary between runs (random initialisation and negative sampling) and depend on `epochs`.
+- The hybrid has the best F1 of all methods and clearly beats plain CPM on every accuracy metric.
+- It is close to Louvain on ONMI (0.326 vs 0.339) and still behind on Omega (0.280 vs 0.322). Louvain is a strong baseline on these small graphs, but it cannot place a friend in more than one circle.
+- Seeds help a little: hybrid beats the same GNN without seeds on all three metrics, by about 0.03 ONMI, 0.04 F1 and 0.025 Omega.
+- Common-neighbours is still better than circle affinity for recovering hidden friendships. Circle-based suggestions are valuable for the explanation they give, not for raw accuracy.
+- The hybrid is slower than CPM and Louvain in absolute terms; no speed advantage appears on graphs this small.
 
-`PROJECT_EXPLANATION.md` quotes per-network figures from a different run and some of its claims (for example that suggestions outperform common-neighbours) do not match the numbers above. Re-run `run_all.py` to regenerate yours.
+### Ablation and tuning ([backend/experiments/ablation_results.md](backend/experiments/ablation_results.md))
+
+Run with `python backend/scripts/ablation.py` (about 15 minutes). One run per setting with a fixed seed, so differences of about 0.01-0.02 are noise. Findings:
+
+| Factor | Finding |
+|---|---|
+| Seeding | Weak-clique seeds are clearly better than CPM seeds (ONMI 0.32 vs 0.25, F1 0.43 vs 0.39, Omega 0.29 vs 0.21). This is why they are now the default. |
+| k (CPM seeds) | k = 3, 4, 5 are all similar; k = 5 is marginally best. |
+| Structure loss | Bernoulli-Poisson is far better than soft modularity (ONMI 0.25 vs 0.13), as expected for overlapping membership. |
+| Seed-consistency loss | Surprisingly, `lambda_seed = 0` (seeds only as input features) scored as well or better than `lambda_seed > 0` with CPM seeds. The seed loss is not shown to help in our data. |
+| Epochs | 50 is too few; 300 is slightly better than 150 and 300 is the default. |
+| Threshold tau | Small effect on accuracy. Lower tau finds more bridge friends (bridge F1 0.28 at 0.1 vs 0.16 at 0.5) at a small cost in Omega. |
+| Encoder | GAT scored higher (F1 0.46) but only on the networks with 800 nodes or fewer, so the number is not comparable. It is 4x slower and O(N^2) in memory. |
 
 ## 10. What we use from which paper
 
@@ -229,12 +246,13 @@ How to read this honestly:
 
 ## 11. Limitations
 
-- **Louvain wins on ONMI and Omega** in our run (see Results); the hybrid's case rests on interpretability and overlap, not top accuracy.
+- **Louvain still wins on ONMI and Omega** in our run (see Results); the hybrid's case rests on best F1, interpretability and overlap.
 - **Ground truth is partial:** not every friend is in a labelled circle.
 - **Features are anonymised,** so circles can be compared by features but not named.
 - **Small graphs:** the largest network has about 1,000 nodes, so scalability is not tested. The code uses dense N x N matrices (`to_graph_tensors`, and `GATLayer` is O(N^2)), which would not scale to large graphs as written.
 - **Baselines are simplified:** own NumPy BigCLAM, and NetworkX Louvain instead of Leiden.
-- **Not implemented from the original plan:** temporal extension, synthetic LFR/ABCD+o2 sensitivity experiments, feature-noise robustness test, PyTorch Geometric and cdlib.
+- **Single runs:** results come from one run per setting with a fixed seed; no repeated trials or confidence intervals.
+- **Not implemented from the original plan:** temporal extension, synthetic LFR/ABCD+o2 sensitivity experiments, scalability and memory tests, feature-noise robustness test, PyTorch Geometric and cdlib.
 - **Privacy:** a real deployment would infer group membership people did not declare; we use a public anonymised research dataset.
 
 ## 12. References

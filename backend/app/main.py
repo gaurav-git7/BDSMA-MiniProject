@@ -44,11 +44,11 @@ def load_or_run_result(ego_id: int) -> Dict[str, Any]:
 
 class RunConfig(BaseModel):
     k: int = 4
-    seeding: str = "cpm"  # 'cpm' or 'weak_clique'
+    seeding: str = "weak_clique"  # 'cpm' or 'weak_clique'
     encoder_type: str = "sage"  # 'sage' or 'gat'
     hidden_dim: int = 64
     lr: float = 0.01
-    epochs: int = 120
+    epochs: int = 300
     structure_loss: str = "bp"  # 'bp' or 'modularity'
     lambda_seed: float = 1.0
     tau: float = 0.5

@@ -5,11 +5,11 @@ import { Sliders, Play, CheckCircle, AlertCircle, RefreshCw } from 'lucide-react
 export default function RunSettings({ egoId, onRunComplete }) {
   const [config, setConfig] = useState({
     k: 4,
-    seeding: 'cpm',
+    seeding: 'weak_clique',
     encoder_type: 'sage',
     hidden_dim: 64,
     lr: 0.01,
-    epochs: 100,
+    epochs: 300,
     structure_loss: 'bp',
     lambda_seed: 1.0,
     tau: 0.5

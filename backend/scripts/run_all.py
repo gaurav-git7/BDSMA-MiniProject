@@ -28,7 +28,7 @@ def main():
         print(f"--> Processing Ego Network: {ego_id} ...")
         t0 = time.time()
         try:
-            res = run_pipeline(ego_id, config={"epochs": 100}, save_results=True)
+            res = run_pipeline(ego_id, config=None, save_results=True)
             elapsed = round(time.time() - t0, 2)
             hybrid_m = res["metrics"]["hybrid"]
             print(f"    Done in {elapsed}s | Nodes: {res['graph_summary']['num_nodes']} | "
