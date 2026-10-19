@@ -9,6 +9,7 @@ import numpy as np
 from .data.loader import list_egos, load_ego
 from .pipeline import run_pipeline, get_results_dir
 from .analysis.recommend import suggest_friends
+from .analysis.explain import label_circles
 
 
 app = FastAPI(
@@ -40,6 +41,15 @@ def load_or_run_result(ego_id: int) -> Dict[str, Any]:
 
     # If not yet generated, run with default settings
     return run_pipeline(ego_id, save_results=True)
+
+
+def circle_labels_for(ego_id: int, communities: Dict[str, List[str]]) -> Dict[str, str]:
+    """Readable circle names derived from profile-feature categories."""
+    try:
+        _, _, node_to_idx, X, _, feat_names = load_ego(ego_id)
+        return label_circles(communities, X, node_to_idx, feat_names)
+    except Exception:
+        return {c: c.replace("_", " ").title() for c in communities}
 
 
 class RunConfig(BaseModel):
@@ -122,10 +132,12 @@ def get_ego_communities(
         # Fallback to hybrid
         method_key = "hybrid"
 
+    circles = comms.get(method_key, {})
     return {
         "ego_id": ego_id,
         "method": method_key,
-        "circles": comms.get(method_key, {})
+        "circles": circles,
+        "labels": circle_labels_for(ego_id, circles)
     }
 
 
@@ -166,6 +178,10 @@ def get_bridge_friends(ego_id: int, top: int = Query(25, description="Number of 
     """Return ranked bridge friends belonging to two or more circles."""
     data = load_or_run_result(ego_id)
     bridges = data.get("bridges", [])
+    labels = circle_labels_for(ego_id, data.get("communities", {}).get("hybrid", {}))
+    for b in bridges:
+        for c in b.get("circles", []):
+            c["label"] = labels.get(c.get("circle_name"), c.get("circle_name"))
     return {
         "ego_id": ego_id,
         "total_bridges": len(bridges),
@@ -190,6 +206,10 @@ def get_friend_recommendations(ego_id: int, node_id: str, top: int = Query(10)):
 
     G, _, _, _, _, _ = load_ego(ego_id)
     recs = suggest_friends(F_mat, G, node_id, node_list, node_to_idx, top_n=top)
+    labels = circle_labels_for(ego_id, data.get("communities", {}).get("hybrid", {}))
+    for r in recs:
+        for c in r.get("shared_circles", []):
+            c["label"] = labels.get(c.get("circle_name"), c.get("circle_name"))
 
     return {
         "ego_id": ego_id,

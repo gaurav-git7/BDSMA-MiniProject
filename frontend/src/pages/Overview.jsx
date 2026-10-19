@@ -60,7 +60,7 @@ export default function Overview({ egos = [], selectedEgo, onSelectEgo, onNaviga
             <Users size={18} color="#6366f1" />
           </div>
           <div style={{ fontSize: '1.75rem', fontWeight: 700, fontFamily: 'var(--font-mono)' }}>
-            {totalNodes.toLocaleString() || '4,039'}
+            {totalNodes.toLocaleString()}
           </div>
           <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>Across all ego graphs</div>
         </div>
@@ -73,7 +73,7 @@ export default function Overview({ egos = [], selectedEgo, onSelectEgo, onNaviga
             <GitCommit size={18} color="#10b981" />
           </div>
           <div style={{ fontSize: '1.75rem', fontWeight: 700, fontFamily: 'var(--font-mono)' }}>
-            {totalEdges.toLocaleString() || '88,234'}
+            {totalEdges.toLocaleString()}
           </div>
           <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>Mutual connections</div>
         </div>
@@ -86,7 +86,7 @@ export default function Overview({ egos = [], selectedEgo, onSelectEgo, onNaviga
             <Target size={18} color="#f59e0b" />
           </div>
           <div style={{ fontSize: '1.75rem', fontWeight: 700, fontFamily: 'var(--font-mono)' }}>
-            {totalCircles || 58}
+            {totalCircles}
           </div>
           <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>Soft overlapping communities</div>
         </div>
@@ -99,7 +99,7 @@ export default function Overview({ egos = [], selectedEgo, onSelectEgo, onNaviga
             <Share2 size={18} color="#f43f5e" />
           </div>
           <div style={{ fontSize: '1.75rem', fontWeight: 700, fontFamily: 'var(--font-mono)' }}>
-            {totalBridges || 210}
+            {totalBridges}
           </div>
           <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>In 2 or more circles</div>
         </div>

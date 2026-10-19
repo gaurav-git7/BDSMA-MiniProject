@@ -4,6 +4,7 @@ import { Target, Info, Sparkles, Layers, Activity, ChevronRight, X } from 'lucid
 
 export default function CirclesView({ egoId }) {
   const [circlesData, setCirclesData] = useState({});
+  const [labels, setLabels] = useState({});
   const [loading, setLoading] = useState(true);
   const [selectedCircle, setSelectedCircle] = useState(null);
   const [explanation, setExplanation] = useState(null);
@@ -14,7 +15,10 @@ export default function CirclesView({ egoId }) {
     setSelectedCircle(null);
     setExplanation(null);
     apiClient.getCommunities(egoId, 'hybrid')
-      .then((data) => setCirclesData(data.circles || {}))
+      .then((data) => {
+        setCirclesData(data.circles || {});
+        setLabels(data.labels || {});
+      })
       .catch((err) => console.error(err))
       .finally(() => setLoading(false));
   }, [egoId]);
@@ -73,7 +77,7 @@ export default function CirclesView({ egoId }) {
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                         <div style={{ width: 12, height: 12, borderRadius: '50%', background: '#6366f1' }}></div>
                         <h3 style={{ fontSize: '1.1rem', fontWeight: 700, textTransform: 'capitalize' }}>
-                          {cName.replace('_', ' ')}
+                          {labels[cName] || cName.replace('_', ' ')}
                         </h3>
                       </div>
                       <span className="badge badge-circle">{members.length} Friends</span>
@@ -116,7 +120,7 @@ export default function CirclesView({ egoId }) {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <Sparkles size={18} color="#818cf8" />
-                <h3 style={{ fontSize: '1.1rem', fontWeight: 700 }}>Circle Explanation</h3>
+                <h3 style={{ fontSize: '1.1rem', fontWeight: 700 }}>Circle Explanation{selectedCircle && labels[selectedCircle] ? `: ${labels[selectedCircle]}` : ''}</h3>
               </div>
               <button
                 onClick={() => setSelectedCircle(null)}

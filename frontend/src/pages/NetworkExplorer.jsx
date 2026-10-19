@@ -9,6 +9,7 @@ export default function NetworkExplorer({ egoId, onSelectForRecommend }) {
   const [loading, setLoading] = useState(true);
   const [activeMethod, setActiveMethod] = useState('hybrid');
   const [communities, setCommunities] = useState({});
+  const [labels, setLabels] = useState({});
   const [activeCircle, setActiveCircle] = useState('all');
   const [selectedNode, setSelectedNode] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -24,6 +25,7 @@ export default function NetworkExplorer({ egoId, onSelectForRecommend }) {
       .then(([gData, cData]) => {
         setGraphData(gData);
         setCommunities(cData.circles || {});
+        setLabels(cData.labels || {});
       })
       .catch((err) => console.error(err))
       .finally(() => setLoading(false));
@@ -90,7 +92,7 @@ export default function NetworkExplorer({ egoId, onSelectForRecommend }) {
               <option value="all">All Circles ({circleNames.length})</option>
               {circleNames.map((c) => (
                 <option key={c} value={c}>
-                  {c} ({communities[c]?.length || 0} friends)
+                  {labels[c] || c} ({communities[c]?.length || 0} friends)
                 </option>
               ))}
             </select>

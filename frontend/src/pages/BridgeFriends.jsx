@@ -93,7 +93,7 @@ export default function BridgeFriends({ egoId, onInspectNode, onSelectForRecomme
                               fontFamily: 'var(--font-mono)'
                             }}
                           >
-                            {c.circle_name} ({c.score})
+                            {c.label || c.circle_name} ({c.score})
                           </span>
                         ))}
                       </div>

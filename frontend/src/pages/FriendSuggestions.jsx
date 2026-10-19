@@ -159,7 +159,7 @@ export default function FriendSuggestions({ egoId, selectedFriendId, onSelectFri
                           }}
                         >
                           <span style={{ color: '#a5b4fc', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                            <CornerDownRight size={11} /> {c.circle_name}
+                            <CornerDownRight size={11} /> {c.label || c.circle_name}
                           </span>
                           <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)' }}>
                             contrib: <strong style={{ color: '#34d399' }}>+{c.affinity_contribution}</strong>

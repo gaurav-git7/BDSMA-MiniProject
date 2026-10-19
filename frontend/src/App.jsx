@@ -14,6 +14,7 @@ import {
 export default function App() {
   const [currentTab, setCurrentTab] = useState('overview');
   const [egos, setEgos] = useState([]);
+  const [apiError, setApiError] = useState(false);
   const [selectedEgo, setSelectedEgo] = useState(0);
   const [suggestFriendId, setSuggestFriendId] = useState('');
 
@@ -25,7 +26,10 @@ export default function App() {
           setSelectedEgo(data[0].ego_id);
         }
       })
-      .catch((err) => console.error('Failed to load egos:', err));
+      .catch((err) => {
+        console.error('Failed to load egos:', err);
+        setApiError(true);
+      });
   }, []);
 
   const handleSelectForRecommend = (nodeId) => {
@@ -115,6 +119,12 @@ export default function App() {
 
       {/* Main Container */}
       <main className="main-container">
+        {apiError && egos.length === 0 && (
+          <div className="glass-panel" style={{ padding: '1rem 1.25rem', marginBottom: '1.5rem', borderColor: '#f87171' }}>
+            <strong style={{ color: '#f87171' }}>Cannot reach the backend API.</strong>{' '}
+            Start it with <code>python -m uvicorn app.main:app --app-dir backend --port 8000</code> and reload this page.
+          </div>
+        )}
         {currentTab === 'overview' && (
           <Overview
             egos={egos}

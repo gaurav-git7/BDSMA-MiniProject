@@ -77,3 +77,88 @@ def explain_circle(
             f"with internal density of {quality['density']} and conductance of {quality['conductance']}."
         )
     }
+
+
+_PRETTY = {
+    "education;school": "School",
+    "education;year": "Graduation-year",
+    "education;type": "Education-level",
+    "education;concentration": "Study-field",
+    "education;degree": "Degree",
+    "work;employer": "Workplace",
+    "work;position": "Job-role",
+    "work;location": "Work-location",
+    "work;start_date": "Work-period",
+    "work;end_date": "Work-period",
+    "location": "Location",
+    "hometown": "Hometown",
+    "languages": "Language",
+    "last_name": "Family (shared surname)",
+    "first_name": "First-name",
+    "birthday": "Birthday",
+    "gender": "Gender",
+    "locale": "Locale",
+    "political": "Political-view",
+    "religion": "Religion",
+    "quotes": "Quotes",
+}
+
+
+_UNINFORMATIVE = {"gender", "locale", "first_name", "birthday", "quotes"}
+
+
+def _feature_category(name: str) -> str:
+    """'166 work;end_date;anonymized feature 163' -> 'work;end_date'."""
+    parts = name.strip().split(" ", 1)
+    if len(parts) == 2 and parts[0].isdigit():
+        name = parts[1]
+    tokens = [t for t in name.split(";") if t and t != "id" and not t.startswith("anonymized")]
+    return ";".join(tokens)
+
+
+def label_circles(
+    communities: Dict[str, List[str]],
+    X: np.ndarray,
+    node_to_idx: Dict[str, int],
+    feat_names: List[str],
+    min_freq: float = 0.25,
+    min_lift: float = 0.15,
+) -> Dict[str, str]:
+    """
+    Give each circle a readable name from the profile-feature category that is most
+    over-represented among its members (e.g. 'Workplace group').
+    Feature values are anonymised in the dataset, so we can name the kind of tie
+    (school, workplace, family surname) but not the actual school or employer.
+    """
+    if X is None or not feat_names:
+        return {c: c.replace("_", " ").title() for c in communities}
+
+    categories = [_feature_category(n) for n in feat_names[: X.shape[1]]]
+    overall = X.mean(axis=0)
+    labels: Dict[str, str] = {}
+    used: Dict[str, int] = {}
+
+    for cname, members in communities.items():
+        idx = [node_to_idx[m] for m in members if m in node_to_idx]
+        base = None
+        if len(idx) >= 3:
+            freq = X[idx].mean(axis=0)
+            lift = freq - overall
+            best_score, best_cat = 0.0, None
+            for f, cat in enumerate(categories):
+                if cat in _UNINFORMATIVE:
+                    continue
+                if freq[f] >= min_freq and lift[f] >= min_lift and lift[f] > best_score:
+                    best_score, best_cat = float(lift[f]), cat
+            if best_cat:
+                base = f"{_PRETTY.get(best_cat, best_cat.replace(';', ' ').replace('_', ' ').title())} group"
+        if base is None:
+            base = "Mixed circle"
+        used[base] = used.get(base, 0) + 1
+        labels[cname] = base if used[base] == 1 else f"{base} #{used[base]}"
+    # Number the first occurrence too when a name repeats, so labels are unambiguous
+    for base, count in used.items():
+        if count > 1:
+            first = next(c for c, l in labels.items() if l == base)
+            labels[first] = f"{base} #1"
+    return labels
